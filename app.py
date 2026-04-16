@@ -5,7 +5,10 @@ from openai import OpenAI
 
 # Load env
 load_dotenv()
-api_key = os.getenv("API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    raise ValueError("API key not found!")
 
 client = OpenAI(
     api_key=api_key,
