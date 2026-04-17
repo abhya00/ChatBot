@@ -23,25 +23,31 @@ messages = []
 def home():
     return render_template("index.html")
 
-@app.route("/chat", methods=["GET","POST"])
+@app.route("/chat", methods=["POST"])
 def chat():
-    if request.method == "GET":
-        return "Use POST request to interact with chatbot"
-     
-    user_input = request.json["message"]
+    try:
+        data = request.get_json()
 
-    messages.append({"role": "user", "content": user_input})
+        if not data or "message" not in data:
+            return jsonify({"error": "Invalid request"}), 400
 
-    response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
-        messages=messages
-    )
+        user_input = data["message"]
 
-    reply = response.choices[0].message.content
+        messages.append({"role": "user", "content": user_input})
 
-    messages.append({"role": "assistant", "content": reply})
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=messages
+        )
 
-    return jsonify({"response": reply})
+        reply = response.choices[0].message.content
+
+        messages.append({"role": "assistant", "content": reply})
+
+        return jsonify({"response": reply})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
